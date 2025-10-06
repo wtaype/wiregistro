@@ -35,9 +35,3 @@ jobs:
         run: |
           npm install -g firebase-tools@latest
           firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
-
-      - name: 🎉 Success
-        run: |
-          echo "✅ Deploy completado!"
-          echo "🔥 Firebase: https://wiregistro.web.app"
-          echo "🔥 Firebase: https://wiregistro.firebaseapp.com"
