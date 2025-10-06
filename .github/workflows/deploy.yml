@@ -1,18 +1,15 @@
-name: 🚀 wiregistro Deploy to GitHub Pages + Firebase
+name: 🔥 wiregistro Deploy to Firebase
 
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 jobs:
-  build-and-deploy:
+  deploy-firebase:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout repository
@@ -31,40 +28,10 @@ jobs:
       - name: 📚 Install dependencies
         run: flutter pub get
 
-      - name: 🎯 Determine Base URL
-        run: |
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            TAG_NAME="${{ github.ref_name }}"
-            echo "BASE_URL=/wiregistro/${TAG_NAME}/" >> $GITHUB_ENV
-            echo "DESTINATION_DIR=${TAG_NAME}" >> $GITHUB_ENV
-            echo "IS_TAG=true" >> $GITHUB_ENV
-            echo "🏷️ Construyendo para tag: ${TAG_NAME}"
-          else
-            echo "BASE_URL=/wiregistro/" >> $GITHUB_ENV
-            echo "DESTINATION_DIR=." >> $GITHUB_ENV
-            echo "IS_TAG=false" >> $GITHUB_ENV
-            echo "🌿 Construyendo para main"
-          fi
-
-      - name: 🏗️ Build for GitHub Pages
-        run: flutter build web --release --base-href=${{ env.BASE_URL }}
-
-      - name: 🐙 Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./build/web
-          destination_dir: ${{ env.DESTINATION_DIR }}
-          keep_files: true
-
-      # 🔥 FIREBASE DEPLOY (solo main) - USANDO TOKEN
-      - name: 🏗️ Re-build for Firebase
-        if: env.IS_TAG == 'false'
+      - name: 🏗️ Build for Firebase
         run: flutter build web --release --base-href=/
 
-      - name: 🔥 Deploy to Firebase
-        if: env.IS_TAG == 'false'
+      - name: 🔥 Deploy to Firebase Hosting
         run: |
           npm install -g firebase-tools@latest
           firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
@@ -72,9 +39,5 @@ jobs:
       - name: 🎉 Success
         run: |
           echo "✅ Deploy completado!"
-          if [[ "${{ env.IS_TAG }}" == "false" ]]; then
-            echo "🔥 Firebase: https://wiregistro.web.app"
-            echo "🐙 GitHub: https://wtaype.github.io/wiregistro"
-          else
-            echo "🏷️ GitHub: https://wtaype.github.io/wiregistro/${{ github.ref_name }}"
-          fi
+          echo "🔥 Firebase: https://wiregistro.web.app"
+          echo "🔥 Firebase: https://wiregistro.firebaseapp.com"
