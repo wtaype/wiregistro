@@ -83,7 +83,7 @@ Los siguientes archivos están en `.gitignore` por seguridad:
 
 ## 👨‍💻 Autor
 
-Desarrollado con ❤️ por [Tu Nombre]
+Desarrollado con ❤️ por @wilder_taype 
 
 ## 📄 Licencia
 
