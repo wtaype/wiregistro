@@ -18,7 +18,7 @@ class _InicioPantallaState extends State<InicioPantalla> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('💰 Mis Gastos'),
+        title: const Text('💰 Mis Gastos awesome'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         elevation: 0,
       ),
