@@ -21,7 +21,7 @@ jobs:
       - name: 🎯 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.1'  # ⬅️ CAMBIO AQUÍ (versión más reciente)
+          flutter-version: '3.35.5'
           channel: 'stable'
           cache: true
 
@@ -58,26 +58,23 @@ jobs:
           destination_dir: ${{ env.DESTINATION_DIR }}
           keep_files: true
 
-      # 🔥 FIREBASE DEPLOY (solo main)
+      # 🔥 FIREBASE DEPLOY (solo main) - USANDO TOKEN
       - name: 🏗️ Re-build for Firebase
         if: env.IS_TAG == 'false'
         run: flutter build web --release --base-href=/
 
       - name: 🔥 Deploy to Firebase
         if: env.IS_TAG == 'false'
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          channelId: live
+        run: |
+          npm install -g firebase-tools@latest
+          firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
 
       - name: 🎉 Success
         run: |
           echo "✅ Deploy completado!"
           if [[ "${{ env.IS_TAG }}" == "false" ]]; then
             echo "🔥 Firebase: https://wiregistro.web.app"
-            echo "🐙 GitHub: https://tu-usuario.github.io/wiregistro"
+            echo "🐙 GitHub: https://wtaype.github.io/wiregistro"
           else
-            echo "🏷️ GitHub: https://tu-usuario.github.io/wiregistro/${{ github.ref_name }}"
+            echo "🏷️ GitHub: https://wtaype.github.io/wiregistro/${{ github.ref_name }}"
           fi
