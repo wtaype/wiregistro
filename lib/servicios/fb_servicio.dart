@@ -23,9 +23,9 @@ class FbServicio {
         .orderBy('fecha', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => Gasto.desdeMap(doc.id, doc.data()))
-              .toList();
+          return snapshot.docs.map((doc) {
+            return Gasto.desdeMap(doc.id, doc.data());
+          }).toList();
         });
   }
 
@@ -41,9 +41,23 @@ class FbServicio {
         .orderBy('fecha', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => Gasto.desdeMap(doc.id, doc.data()))
-              .toList();
+          return snapshot.docs.map((doc) {
+            return Gasto.desdeMap(doc.id, doc.data());
+          }).toList();
+        });
+  }
+
+  // Obtener gastos por grupo
+  Stream<List<Gasto>> obtenerGastosPorGrupo(String grupo) {
+    return _bd
+        .collection(_coleccion)
+        .where('grupo', isEqualTo: grupo)
+        .orderBy('fecha', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return Gasto.desdeMap(doc.id, doc.data());
+          }).toList();
         });
   }
 
@@ -75,11 +89,31 @@ class FbServicio {
       final snapshot = await _bd.collection(_coleccion).get();
       double total = 0;
       for (var doc in snapshot.docs) {
-        total += (doc.data()['monto'] ?? 0).toDouble();
+        final gasto = Gasto.desdeMap(doc.id, doc.data());
+        total += gasto.monto;
       }
       return total;
     } catch (e) {
       print('❌ Error al calcular total: $e');
+      return 0;
+    }
+  }
+
+  // Calcular total por grupo
+  Future<double> calcularTotalPorGrupo(String grupo) async {
+    try {
+      final snapshot = await _bd
+          .collection(_coleccion)
+          .where('grupo', isEqualTo: grupo)
+          .get();
+      double total = 0;
+      for (var doc in snapshot.docs) {
+        final gasto = Gasto.desdeMap(doc.id, doc.data());
+        total += gasto.monto;
+      }
+      return total;
+    } catch (e) {
+      print('❌ Error al calcular total por grupo: $e');
       return 0;
     }
   }

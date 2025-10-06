@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../servicios/fb_servicio.dart';
 import '../modelos/gasto.dart';
+import '../modelos/usuario.dart';
 
 class AgregarGastoPantalla extends StatefulWidget {
-  const AgregarGastoPantalla({super.key});
+  final Usuario? usuario;
+
+  const AgregarGastoPantalla({super.key, this.usuario});
 
   @override
   State<AgregarGastoPantalla> createState() => _AgregarGastoPantallaState();
@@ -53,56 +56,111 @@ class _AgregarGastoPantallaState extends State<AgregarGastoPantalla> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agregar Gasto'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('➕ Agregar Gasto'),
+        backgroundColor: const Color(0xFF4CAF50),
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Info del usuario
+              if (widget.usuario != null)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4CAF50).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        backgroundColor: Color(0xFF4CAF50),
+                        child: Icon(Icons.person, color: Colors.white),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.usuario!.nombreCompleto,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              'Grupo: ${widget.usuario!.grupo}',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 24),
+
               // Descripción
+              const Text(
+                'Descripción',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _descripcionController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción',
+                decoration: InputDecoration(
                   hintText: 'Ej: Almuerzo en restaurante',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description),
+                  prefixIcon: const Icon(Icons.description_outlined),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa una descripción';
+                    return 'Ingresa una descripción';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Monto
+              const Text(
+                'Monto',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _montoController,
-                decoration: const InputDecoration(
-                  labelText: 'Monto',
-                  hintText: '0.00',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.attach_money),
-                  prefixText: 'S/ ',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                 ],
+                decoration: InputDecoration(
+                  hintText: '0.00',
+                  prefixIcon: const Icon(Icons.attach_money),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa un monto';
+                    return 'Ingresa un monto';
                   }
                   if (double.tryParse(value) == null) {
-                    return 'Ingresa un monto válido';
+                    return 'Monto inválido';
                   }
                   if (double.parse(value) <= 0) {
                     return 'El monto debe ser mayor a 0';
@@ -110,70 +168,100 @@ class _AgregarGastoPantallaState extends State<AgregarGastoPantalla> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Categoría
               const Text(
                 'Categoría',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: _categorias.map((categoria) {
-                  final seleccionada = _categoriaSeleccionada == categoria;
-                  return ChoiceChip(
+                  final seleccionado = categoria == _categoriaSeleccionada;
+                  return FilterChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           _iconosCategorias[categoria],
-                          size: 16,
-                          color: seleccionada ? Colors.white : null,
+                          size: 18,
+                          color: seleccionado ? Colors.white : Colors.grey,
                         ),
                         const SizedBox(width: 4),
                         Text(categoria),
                       ],
                     ),
-                    selected: seleccionada,
-                    onSelected: (selected) {
+                    selected: seleccionado,
+                    onSelected: (value) {
                       setState(() {
                         _categoriaSeleccionada = categoria;
                       });
                     },
+                    backgroundColor: Colors.grey[200],
+                    selectedColor: const Color(0xFF4CAF50),
+                    labelStyle: TextStyle(
+                      color: seleccionado ? Colors.white : Colors.black87,
+                      fontWeight: seleccionado
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Fecha
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today),
-                title: const Text('Fecha'),
-                subtitle: Text(
-                  '${_fechaSeleccionada.day}/${_fechaSeleccionada.month}/${_fechaSeleccionada.year}',
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              const Text(
+                'Fecha',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              InkWell(
                 onTap: _seleccionarFecha,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey[50],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: Colors.grey),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${_fechaSeleccionada.day}/${_fechaSeleccionada.month}/${_fechaSeleccionada.year}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
 
-              // Botón guardar
+              // Botón Guardar
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 54,
                 child: ElevatedButton(
                   onPressed: _guardando ? null : _guardarGasto,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor: const Color(0xFF4CAF50),
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
                   ),
                   child: _guardando
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
+                          height: 24,
+                          width: 24,
                           child: CircularProgressIndicator(
                             color: Colors.white,
                             strokeWidth: 2,
@@ -181,7 +269,10 @@ class _AgregarGastoPantallaState extends State<AgregarGastoPantalla> {
                         )
                       : const Text(
                           'Guardar Gasto',
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
@@ -198,6 +289,15 @@ class _AgregarGastoPantallaState extends State<AgregarGastoPantalla> {
       initialDate: _fechaSeleccionada,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      locale: const Locale('es', 'ES'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(primary: Color(0xFF4CAF50)),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (fecha != null) {
@@ -210,26 +310,38 @@ class _AgregarGastoPantallaState extends State<AgregarGastoPantalla> {
   Future<void> _guardarGasto() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (widget.usuario == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Error: Usuario no encontrado'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _guardando = true;
     });
 
     try {
-      final gasto = Gasto(
+      final nuevoGasto = Gasto(
         id: '',
         descripcion: _descripcionController.text.trim(),
         monto: double.parse(_montoController.text),
         fecha: _fechaSeleccionada,
         categoria: _categoriaSeleccionada,
+        usuarioId: widget.usuario!.id,
+        grupo: widget.usuario!.grupo,
       );
 
-      await _fbServicio.agregarGasto(gasto);
+      await _fbServicio.agregarGasto(nuevoGasto);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Gasto guardado exitosamente'),
-            backgroundColor: Colors.green,
+            content: Text('✅ Gasto agregado exitosamente'),
+            backgroundColor: Color(0xFF4CAF50),
           ),
         );
         Navigator.pop(context);
@@ -241,9 +353,11 @@ class _AgregarGastoPantallaState extends State<AgregarGastoPantalla> {
         );
       }
     } finally {
-      setState(() {
-        _guardando = false;
-      });
+      if (mounted) {
+        setState(() {
+          _guardando = false;
+        });
+      }
     }
   }
 }
