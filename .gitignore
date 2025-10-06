@@ -46,7 +46,7 @@ app.*.map.json
 # 🔒 ARCHIVOS SENSIBLES DE FIREBASE - NO SUBIR
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
-# lib/firebase_options.dart
+lib/firebase_options.dart
 firebase.json
 .firebaserc
 
