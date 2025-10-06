@@ -64,7 +64,7 @@ class _LoginPantallaState extends State<LoginPantalla> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(25),
                         child: Image.network(
-                          'https://retodelmes.web.app/smile.png',
+                          '${Uri.base.origin}/smile.png',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return const Icon(
