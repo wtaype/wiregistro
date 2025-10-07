@@ -61,16 +61,19 @@ class _SplashPantallaState extends State<SplashPantalla>
                       ),
                     ],
                   ),
-                  child: Image.network(
-                    '${Uri.base.origin}/smile.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.sentiment_satisfied_alt,
-                        size: 80,
-                        color: Color(0xFF4CAF50),
-                      );
-                    },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(
+                      'https://wiregistro.web.app/smile.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.sentiment_satisfied_alt,
+                          size: 80,
+                          color: Color(0xFF4CAF50),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
