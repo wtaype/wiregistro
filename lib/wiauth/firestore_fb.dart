@@ -14,8 +14,7 @@ class DatabaseServicio {
           .get();
       return snapshot.exists;
     } catch (e) {
-      print('Error verificando usuario: $e');
-      return false; // Si hay error, asume que no existe para no bloquear
+      return false; // No bloquear si hay error
     }
   }
 
@@ -29,25 +28,17 @@ class DatabaseServicio {
           .get();
       return snapshot.exists;
     } catch (e) {
-      print('Error verificando email: $e');
-      return false; // Si hay error, asume que no existe para no bloquear
+      return false; // No bloquear si hay error
     }
   }
 
-  // 💾 Guardar usuario en Realtime Database
-  static Future<void> guardarUsuario(Usuario usuario) async {
-    try {
-      await _db
-          .child(_coleccion)
-          .child(usuario.usuarioLimpio)
-          .set(usuario.toMap());
-    } catch (e) {
-      print('Error guardando usuario: $e');
-      rethrow;
-    }
-  }
+  // 💾 Guardar usuario
+  static Future<void> guardarUsuario(Usuario usuario) async => await _db
+      .child(_coleccion)
+      .child(usuario.usuarioLimpio)
+      .set(usuario.toMap());
 
-  // 🔍 Obtener usuario por nombre
+  // 🔍 Obtener usuario
   static Future<Usuario?> obtenerUsuario(String usuario) async {
     try {
       final snapshot = await _db
@@ -60,20 +51,14 @@ class DatabaseServicio {
       }
       return null;
     } catch (e) {
-      print('Error obteniendo usuario: $e');
       return null;
     }
   }
 
-  // 📧 Obtener email por usuario (para login)
+  // 📧 Obtener email por usuario
   static Future<String?> obtenerEmailPorUsuario(String usuario) async {
-    try {
-      final usuarioData = await obtenerUsuario(usuario);
-      return usuarioData?.email;
-    } catch (e) {
-      print('Error obteniendo email: $e');
-      return null;
-    }
+    final usuarioData = await obtenerUsuario(usuario);
+    return usuarioData?.email;
   }
 
   // ⏰ Actualizar última actividad
@@ -83,8 +68,7 @@ class DatabaseServicio {
         'ultimaActividad': DateTime.now().millisecondsSinceEpoch,
       });
     } catch (e) {
-      print('Error actualizando actividad: $e');
-      // No rethrow - no es crítico
+      // No crítico
     }
   }
 }

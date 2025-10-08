@@ -16,32 +16,35 @@ class PantallaRegistro extends StatefulWidget {
 
 class _PantallaRegistroState extends State<PantallaRegistro> {
   final _form = GlobalKey<FormState>();
-  final _email = TextEditingController();
-  final _usuario = TextEditingController();
-  final _nombre = TextEditingController();
-  final _apellidos = TextEditingController();
-  final _grupo = TextEditingController();
-  final _password = TextEditingController();
-  final _confirmPassword = TextEditingController();
+  final _controllers = {
+    'email': TextEditingController(),
+    'usuario': TextEditingController(),
+    'nombre': TextEditingController(),
+    'apellidos': TextEditingController(),
+    'grupo': TextEditingController(),
+    'password': TextEditingController(),
+    'confirmPassword': TextEditingController(),
+  };
 
   String _genero = 'masculino';
   bool _cargando = false;
-  bool _verPassword = false;
-  bool _verConfirm = false;
+  bool _verPassword = false, _verConfirm = false;
 
-  // 🚨 Estados de validación CORREGIDOS
-  bool _emailExiste = false;
-  bool _usuarioExiste = false;
-  bool _validandoEmail = false;
-  bool _validandoUsuario = false;
-  bool _emailValidado = false; // 🔥 NUEVO: si ya verificamos en Firebase
-  bool _usuarioValidado = false; // 🔥 NUEVO: si ya verificamos en Firebase
+  // 🚨 Estados de validación
+  final _validacion = {
+    'emailExiste': false,
+    'usuarioExiste': false,
+    'validandoEmail': false,
+    'validandoUsuario': false,
+    'emailValidado': false,
+    'usuarioValidado': false,
+  };
 
   @override
   void initState() {
     super.initState();
-    _email.addListener(_validarEmailTiempoReal);
-    _usuario.addListener(_validarUsuarioTiempoReal);
+    _controllers['email']!.addListener(_validarEmailTiempoReal);
+    _controllers['usuario']!.addListener(_validarUsuarioTiempoReal);
   }
 
   @override
@@ -52,7 +55,6 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
         title: Text('Registro', style: AppEstilos.textoBoton),
         centerTitle: true,
         automaticallyImplyLeading: false,
-        backgroundColor: AppColores.verdePrimario,
       ),
       body: SingleChildScrollView(
         padding: AppConstantes.miwp,
@@ -63,33 +65,56 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
               _construirLogo(),
               const SizedBox(height: AppConstantes.espacioGrande),
 
-              _construirCampoEmail(),
+              // 📧 Email con validación visual
+              _construirCampoValidacion(
+                controller: _controllers['email']!,
+                label: 'Email',
+                hint: 'tu@email.com',
+                icon: Icons.email,
+                keyboard: TextInputType.emailAddress,
+                validando: _validacion['validandoEmail']!,
+                tieneError: _validacion['emailExiste']!,
+                esExito:
+                    _validacion['emailValidado']! &&
+                    !_validacion['emailExiste']!,
+                validator: _validarEmail,
+              ),
+
               const SizedBox(height: AppConstantes.espacioMedio),
 
-              _construirCampoUsuario(),
+              // 👤 Usuario con validación visual
+              _construirCampoValidacion(
+                controller: _controllers['usuario']!,
+                label: 'Usuario',
+                hint: 'usuario_unico',
+                icon: Icons.person,
+                validando: _validacion['validandoUsuario']!,
+                tieneError: _validacion['usuarioExiste']!,
+                esExito:
+                    _validacion['usuarioValidado']! &&
+                    !_validacion['usuarioExiste']!,
+                validator: _validarUsuario,
+              ),
+
               const SizedBox(height: AppConstantes.espacioMedio),
 
+              // 📝 Nombre y Apellidos
               Row(
                 children: [
                   Expanded(
                     child: _construirCampo(
-                      controller: _nombre,
-                      label: 'Nombre',
-                      hint: 'Tu nombre',
-                      icon: Icons.badge,
-                      validator: (v) =>
-                          v?.trim().isEmpty ?? true ? 'Nombre requerido' : null,
+                      'nombre',
+                      'Nombre',
+                      'Tu nombre',
+                      Icons.badge,
                     ),
                   ),
                   const SizedBox(width: AppConstantes.espacioChico),
                   Expanded(
                     child: _construirCampo(
-                      controller: _apellidos,
-                      label: 'Apellidos',
-                      hint: 'Tus apellidos',
-                      validator: (v) => v?.trim().isEmpty ?? true
-                          ? 'Apellidos requeridos'
-                          : null,
+                      'apellidos',
+                      'Apellidos',
+                      'Tus apellidos',
                     ),
                   ),
                 ],
@@ -97,47 +122,39 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
 
               const SizedBox(height: AppConstantes.espacioMedio),
 
+              // 👥 Grupo
               _construirCampo(
-                controller: _grupo,
-                label: 'Grupo',
-                hint: 'familia, amigos, trabajo',
-                icon: Icons.group,
-                validator: (v) =>
-                    v?.trim().isEmpty ?? true ? 'Grupo requerido' : null,
+                'grupo',
+                'Grupo',
+                'familia, amigos, trabajo',
+                Icons.group,
               ),
 
               const SizedBox(height: AppConstantes.espacioMedio),
+
+              // 🚻 Género
               _construirSelectorGenero(),
+
               const SizedBox(height: AppConstantes.espacioMedio),
 
+              // 🔒 Contraseñas
               _construirCampoPassword(
-                controller: _password,
-                label: 'Contraseña',
-                mostrar: _verPassword,
-                onToggle: () => setState(() => _verPassword = !_verPassword),
-                validator: (v) {
-                  if (v?.isEmpty ?? true) return 'Contraseña requerida';
-                  if (v!.length < 6) return 'Mínimo 6 caracteres';
-                  return null;
-                },
+                'password',
+                'Contraseña',
+                _verPassword,
+                () => setState(() => _verPassword = !_verPassword),
               ),
-
               const SizedBox(height: AppConstantes.espacioMedio),
-
               _construirCampoPassword(
-                controller: _confirmPassword,
-                label: 'Confirmar Contraseña',
-                mostrar: _verConfirm,
-                onToggle: () => setState(() => _verConfirm = !_verConfirm),
-                validator: (v) {
-                  if (v?.isEmpty ?? true) return 'Confirma tu contraseña';
-                  if (v != _password.text) return 'Contraseñas no coinciden';
-                  return null;
-                },
+                'confirmPassword',
+                'Confirmar Contraseña',
+                _verConfirm,
+                () => setState(() => _verConfirm = !_verConfirm),
               ),
 
               const SizedBox(height: AppConstantes.espacioGigante),
 
+              // 🎯 Botón registro
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -176,6 +193,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     );
   }
 
+  // 🎨 Logo
   Widget _construirLogo() => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
@@ -200,7 +218,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
           ),
           child: ClipOval(
             child: Image.network(
-              'https://wiregistro.web.app/smile.png',
+              AppUrls.logoUrl,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Icon(
                 Icons.account_circle,
@@ -220,108 +238,80 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     ),
   );
 
-  // 📧 Campo email con validación CORREGIDA
-  Widget _construirCampoEmail() => TextFormField(
-    controller: _email,
-    keyboardType: TextInputType.emailAddress,
-    validator: _validarEmail,
-    style: AppEstilos.textoNormal,
-    decoration: InputDecoration(
-      labelText: 'Email',
-      hintText: 'tu@email.com',
-      prefixIcon: Icon(Icons.email, color: AppColores.verdePrimario),
-      suffixIcon: _validandoEmail
-          ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : _emailExiste
-          ? Icon(Icons.error, color: Colors.red) // ❌ Existe
-          : _emailValidado && EmailValidator.validate(_email.text)
-          ? Icon(
-              Icons.check_circle,
-              color: Colors.green,
-            ) // ✅ Solo después de verificar Firebase
-          : null,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
-        borderSide: BorderSide(
-          color: _emailExiste ? Colors.red : AppColores.verdeSecundario,
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
-        borderSide: BorderSide(
-          color: _emailExiste ? Colors.red : AppColores.verdePrimario,
-          width: 2,
-        ),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
-        borderSide: BorderSide(color: Colors.red, width: 2),
-      ),
-      filled: true,
-      fillColor: Colors.white,
-    ),
-  );
-
-  // 👤 Campo usuario con validación CORREGIDA
-  Widget _construirCampoUsuario() => TextFormField(
-    controller: _usuario,
-    validator: _validarUsuario,
-    style: AppEstilos.textoNormal,
-    decoration: InputDecoration(
-      labelText: 'Usuario',
-      hintText: 'usuario_unico',
-      prefixIcon: Icon(Icons.person, color: AppColores.verdePrimario),
-      suffixIcon: _validandoUsuario
-          ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : _usuarioExiste
-          ? Icon(Icons.error, color: Colors.red) // ❌ Existe
-          : _usuarioValidado &&
-                _usuario.text.length >= 3 &&
-                RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(_usuario.text)
-          ? Icon(
-              Icons.check_circle,
-              color: Colors.green,
-            ) // ✅ Solo después de verificar Firebase
-          : null,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
-        borderSide: BorderSide(
-          color: _usuarioExiste ? Colors.red : AppColores.verdeSecundario,
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
-        borderSide: BorderSide(
-          color: _usuarioExiste ? Colors.red : AppColores.verdePrimario,
-          width: 2,
-        ),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
-        borderSide: BorderSide(color: Colors.red, width: 2),
-      ),
-      filled: true,
-      fillColor: Colors.white,
-    ),
-  );
-
-  Widget _construirCampo({
+  // 📧 Campo con validación visual - USANDO VdError/VdGreen
+  Widget _construirCampoValidacion({
     required TextEditingController controller,
     required String label,
     required String hint,
-    IconData? icon,
+    required IconData icon,
+    TextInputType? keyboard,
+    required bool validando,
+    required bool tieneError,
+    required bool esExito,
     required String? Function(String?) validator,
   }) => TextFormField(
     controller: controller,
+    keyboardType: keyboard,
     validator: validator,
+    style: AppEstilos.textoNormal,
+    decoration: tieneError
+        ? VdError.decoration(
+            label: label,
+            hint: hint,
+            icon: icon,
+            suffixIcon: validando
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+          )
+        : esExito
+        ? VdGreen.decoration(
+            label: label,
+            hint: hint,
+            icon: icon,
+            suffixIcon: validando
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+          )
+        : InputDecoration(
+            labelText: label,
+            hintText: hint,
+            prefixIcon: Icon(icon, color: AppColores.verdePrimario),
+            suffixIcon: validando
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
+              borderSide: BorderSide(color: AppColores.verdePrimario, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+  );
+
+  // 📝 Campo normal
+  Widget _construirCampo(
+    String key,
+    String label,
+    String hint, [
+    IconData? icon,
+  ]) => TextFormField(
+    controller: _controllers[key]!,
+    validator: (v) => v?.trim().isEmpty ?? true ? '$label requerido' : null,
     style: AppEstilos.textoNormal,
     decoration: InputDecoration(
       labelText: label,
@@ -341,16 +331,16 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     ),
   );
 
-  Widget _construirCampoPassword({
-    required TextEditingController controller,
-    required String label,
-    required bool mostrar,
-    required VoidCallback onToggle,
-    required String? Function(String?) validator,
-  }) => TextFormField(
-    controller: controller,
+  // 🔒 Campo password
+  Widget _construirCampoPassword(
+    String key,
+    String label,
+    bool mostrar,
+    VoidCallback onToggle,
+  ) => TextFormField(
+    controller: _controllers[key]!,
     obscureText: !mostrar,
-    validator: validator,
+    validator: key == 'password' ? _validarPassword : _validarConfirmPassword,
     style: AppEstilos.textoNormal,
     decoration: InputDecoration(
       labelText: label,
@@ -374,6 +364,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     ),
   );
 
+  // 🚻 Selector género
   Widget _construirSelectorGenero() => Container(
     decoration: BoxDecoration(
       border: Border.all(color: AppColores.verdeSecundario),
@@ -401,84 +392,60 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     ),
   );
 
-  // 🕐 Validación email tiempo real CORREGIDA
+  // 🕐 Validación email tiempo real
   void _validarEmailTiempoReal() async {
-    final email = _email.text.trim();
+    final email = _controllers['email']!.text.trim();
 
-    // Reset estados
     setState(() {
-      _emailValidado = false;
-      _emailExiste = false;
+      _validacion['emailValidado'] = false;
+      _validacion['emailExiste'] = false;
     });
 
-    // Si está vacío o formato incorrecto, no verificar Firebase
-    if (email.isEmpty || !EmailValidator.validate(email)) {
-      return;
-    }
+    if (email.isEmpty || !EmailValidator.validate(email)) return;
 
-    setState(() => _validandoEmail = true);
+    setState(() => _validacion['validandoEmail'] = true);
 
-    try {
-      final existe = await DatabaseServicio.emailExiste(email);
-      if (mounted) {
-        setState(() {
-          _emailExiste = existe;
-          _emailValidado = true; // 🔥 Marca que ya verificamos Firebase
-          _validandoEmail = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _emailExiste = false;
-          _emailValidado = false;
-          _validandoEmail = false;
-        });
-      }
+    final existe = await DatabaseServicio.emailExiste(email);
+
+    if (mounted) {
+      setState(() {
+        _validacion['emailExiste'] = existe;
+        _validacion['emailValidado'] = true;
+        _validacion['validandoEmail'] = false;
+      });
     }
   }
 
-  // 🕐 Validación usuario tiempo real CORREGIDA
+  // 🕐 Validación usuario tiempo real
   void _validarUsuarioTiempoReal() async {
-    final usuario = _usuario.text.trim();
+    final usuario = _controllers['usuario']!.text.trim();
 
-    // Reset estados
     setState(() {
-      _usuarioValidado = false;
-      _usuarioExiste = false;
+      _validacion['usuarioValidado'] = false;
+      _validacion['usuarioExiste'] = false;
     });
 
-    // Si formato incorrecto, no verificar Firebase
-    if (usuario.length < 3 || !RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(usuario)) {
+    if (usuario.length < 3 || !RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(usuario))
       return;
-    }
 
-    setState(() => _validandoUsuario = true);
+    setState(() => _validacion['validandoUsuario'] = true);
 
-    try {
-      final existe = await DatabaseServicio.usuarioExiste(usuario);
-      if (mounted) {
-        setState(() {
-          _usuarioExiste = existe;
-          _usuarioValidado = true; // 🔥 Marca que ya verificamos Firebase
-          _validandoUsuario = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _usuarioExiste = false;
-          _usuarioValidado = false;
-          _validandoUsuario = false;
-        });
-      }
+    final existe = await DatabaseServicio.usuarioExiste(usuario);
+
+    if (mounted) {
+      setState(() {
+        _validacion['usuarioExiste'] = existe;
+        _validacion['usuarioValidado'] = true;
+        _validacion['validandoUsuario'] = false;
+      });
     }
   }
 
+  // ✅ Validaciones
   String? _validarEmail(String? email) {
     if (email?.trim().isEmpty ?? true) return 'Email requerido';
     if (!EmailValidator.validate(email!)) return 'Email inválido';
-    if (_emailExiste) return 'Email ya registrado';
+    if (_validacion['emailExiste']!) return 'Email ya registrado';
     return null;
   }
 
@@ -487,27 +454,38 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     if (usuario!.length < 3) return 'Mínimo 3 caracteres';
     if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(usuario))
       return 'Solo letras, números y _';
-    if (_usuarioExiste) return 'Usuario no disponible';
+    if (_validacion['usuarioExiste']!) return 'Usuario no disponible';
     return null;
   }
 
-  bool _puedeRegistrar() {
-    return !_cargando &&
-        !_emailExiste &&
-        !_usuarioExiste &&
-        !_validandoEmail &&
-        !_validandoUsuario &&
-        _emailValidado && // 🔥 Debe haber verificado en Firebase
-        _usuarioValidado && // 🔥 Debe haber verificado en Firebase
-        _email.text.isNotEmpty &&
-        _usuario.text.isNotEmpty &&
-        _nombre.text.isNotEmpty &&
-        _apellidos.text.isNotEmpty &&
-        _grupo.text.isNotEmpty &&
-        _password.text.length >= 6 &&
-        _confirmPassword.text == _password.text;
+  String? _validarPassword(String? password) {
+    if (password?.isEmpty ?? true) return 'Contraseña requerida';
+    if (password!.length < 6) return 'Mínimo 6 caracteres';
+    return null;
   }
 
+  String? _validarConfirmPassword(String? confirmPassword) {
+    if (confirmPassword?.isEmpty ?? true) return 'Confirma tu contraseña';
+    if (confirmPassword != _controllers['password']!.text)
+      return 'Contraseñas no coinciden';
+    return null;
+  }
+
+  // 🎯 Verificar si puede registrar
+  bool _puedeRegistrar() {
+    return !_cargando &&
+        !_validacion['emailExiste']! &&
+        !_validacion['usuarioExiste']! &&
+        !_validacion['validandoEmail']! &&
+        !_validacion['validandoUsuario']! &&
+        _validacion['emailValidado']! &&
+        _validacion['usuarioValidado']! &&
+        _controllers.values.every((c) => c.text.isNotEmpty) &&
+        _controllers['password']!.text.length >= 6 &&
+        _controllers['confirmPassword']!.text == _controllers['password']!.text;
+  }
+
+  // 🚀 Registrar usuario
   void _registrarUsuario() async {
     if (!_form.currentState!.validate()) return;
 
@@ -515,20 +493,23 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
 
     try {
       // 1. Crear cuenta Auth
-      final user = await AuthServicio.crearCuenta(_email.text, _password.text);
+      final user = await AuthServicio.crearCuenta(
+        _controllers['email']!.text,
+        _controllers['password']!.text,
+      );
 
       // 2. Crear modelo Usuario
       final usuario = Usuario.nuevo(
-        email: _email.text,
-        usuario: _usuario.text,
-        nombre: _nombre.text,
-        apellidos: _apellidos.text,
-        grupo: _grupo.text,
+        email: _controllers['email']!.text,
+        usuario: _controllers['usuario']!.text,
+        nombre: _controllers['nombre']!.text,
+        apellidos: _controllers['apellidos']!.text,
+        grupo: _controllers['grupo']!.text,
         genero: _genero,
         uid: user.uid,
       );
 
-      // 3. Guardar en Realtime Database
+      // 3. Guardar en Database
       await DatabaseServicio.guardarUsuario(usuario);
 
       // 4. Éxito
@@ -548,6 +529,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     }
   }
 
+  // 📨 Mensajes
   void _mostrarError(String mensaje) =>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -568,13 +550,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
 
   @override
   void dispose() {
-    _email.dispose();
-    _usuario.dispose();
-    _nombre.dispose();
-    _apellidos.dispose();
-    _grupo.dispose();
-    _password.dispose();
-    _confirmPassword.dispose();
+    _controllers.values.forEach((controller) => controller.dispose());
     super.dispose();
   }
 }

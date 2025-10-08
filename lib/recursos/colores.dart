@@ -100,3 +100,74 @@ class AppEstilos {
     color: AppColores.blanco,
   );
 }
+
+// 🎯 Clases de validación visual - NUEVAS
+class VdError {
+  static const Color borde = Color(0xFFE53935);
+  static const Color texto = Color(0xFFD32F2F);
+  static const Color fondo = Color(0xFFFFEBEE);
+  static const Color icono = Color(0xFFE53935);
+
+  // 🔥 InputDecoration lista para usar
+  static InputDecoration decoration({
+    required String label,
+    required String hint,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) => InputDecoration(
+    labelText: label,
+    hintText: hint,
+    prefixIcon: Icon(icon, color: icono),
+    suffixIcon: suffixIcon,
+    labelStyle: TextStyle(color: texto),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borde, width: 2),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borde, width: 2),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borde, width: 2),
+    ),
+    filled: true,
+    fillColor: fondo,
+  );
+}
+
+class VdGreen {
+  static const Color borde = Color(0xFF4CAF50);
+  static const Color texto = Color(0xFF2E7D32);
+  static const Color fondo = Color(0xFFE8F5E8);
+  static const Color icono = Color(0xFF4CAF50);
+
+  // 🔥 InputDecoration lista para usar
+  static InputDecoration decoration({
+    required String label,
+    required String hint,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) => InputDecoration(
+    labelText: label,
+    hintText: hint,
+    prefixIcon: Icon(icon, color: icono),
+    suffixIcon: suffixIcon,
+    labelStyle: TextStyle(color: texto),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borde, width: 2),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borde, width: 2),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borde, width: 2),
+    ),
+    filled: true,
+    fillColor: fondo,
+  );
+}

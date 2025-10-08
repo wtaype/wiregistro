@@ -5,55 +5,34 @@ import 'firestore_fb.dart';
 class AuthServicio {
   static final _auth = FirebaseAuth.instance;
 
-  // 🔐 Usuario actual
+  // 🔐 Propiedades
   static User? get usuarioActual => _auth.currentUser;
   static bool get estaLogueado => usuarioActual != null;
 
-  // 📧 Crear cuenta Firebase Auth
+  // 📧 Crear cuenta
   static Future<User> crearCuenta(String email, String password) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email.toLowerCase().trim(),
         password: password,
       );
-
-      if (credential.user == null) {
-        throw Exception('Error creando cuenta');
-      }
-
       return credential.user!;
     } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'email-already-in-use':
-          throw Exception('Este email ya está registrado en Auth');
-        case 'weak-password':
-          throw Exception('Contraseña muy débil');
-        case 'invalid-email':
-          throw Exception('Email inválido');
-        case 'network-request-failed':
-          throw Exception('Sin conexión a internet');
-        default:
-          throw Exception('Error: ${e.message}');
-      }
-    } catch (e) {
-      print('Error en AuthServicio.crearCuenta: $e');
-      rethrow;
+      throw Exception(_obtenerMensajeError(e.code));
     }
   }
 
-  // 🔑 Login con email o usuario
+  // 🔑 Login
   static Future<User> login(String emailOUsuario, String password) async {
     try {
       String email = emailOUsuario.toLowerCase().trim();
 
-      // Si no es email, buscar email por usuario
+      // Si no es email, buscar por usuario
       if (!EmailValidator.validate(emailOUsuario)) {
         final emailEncontrado = await DatabaseServicio.obtenerEmailPorUsuario(
           emailOUsuario,
         );
-        if (emailEncontrado == null) {
-          throw Exception('Usuario no encontrado');
-        }
+        if (emailEncontrado == null) throw Exception('Usuario no encontrado');
         email = emailEncontrado;
       }
 
@@ -62,59 +41,46 @@ class AuthServicio {
         password: password,
       );
 
-      if (credential.user == null) {
-        throw Exception('Error en login');
-      }
-
-      // Actualizar última actividad si fue login por usuario
+      // Actualizar actividad si login por usuario
       if (!EmailValidator.validate(emailOUsuario)) {
-        await DatabaseServicio.actualizarUltimaActividad(emailOUsuario);
+        DatabaseServicio.actualizarUltimaActividad(emailOUsuario);
       }
 
       return credential.user!;
     } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'user-not-found':
-          throw Exception('Usuario no encontrado');
-        case 'wrong-password':
-          throw Exception('Contraseña incorrecta');
-        case 'invalid-email':
-          throw Exception('Email inválido');
-        case 'network-request-failed':
-          throw Exception('Sin conexión a internet');
-        default:
-          throw Exception('Error: ${e.message}');
-      }
-    } catch (e) {
-      print('Error en AuthServicio.login: $e');
-      rethrow;
+      throw Exception(_obtenerMensajeError(e.code));
     }
   }
 
   // 🚪 Cerrar sesión
-  static Future<void> logout() async {
-    try {
-      await _auth.signOut();
-    } catch (e) {
-      throw Exception('Error cerrando sesión');
-    }
-  }
+  static Future<void> logout() async => await _auth.signOut();
 
   // 🔄 Restablecer contraseña
   static Future<void> restablecerPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email.toLowerCase().trim());
     } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'user-not-found':
-          throw Exception('Email no registrado');
-        case 'invalid-email':
-          throw Exception('Email inválido');
-        default:
-          throw Exception('Error: ${e.message}');
-      }
-    } catch (e) {
-      rethrow;
+      throw Exception(_obtenerMensajeError(e.code));
+    }
+  }
+
+  // 🎯 Mensajes de error centralizados
+  static String _obtenerMensajeError(String codigo) {
+    switch (codigo) {
+      case 'email-already-in-use':
+        return 'Email ya registrado';
+      case 'weak-password':
+        return 'Contraseña muy débil';
+      case 'invalid-email':
+        return 'Email inválido';
+      case 'user-not-found':
+        return 'Usuario no encontrado';
+      case 'wrong-password':
+        return 'Contraseña incorrecta';
+      case 'network-request-failed':
+        return 'Sin conexión a internet';
+      default:
+        return 'Error de autenticación';
     }
   }
 }
