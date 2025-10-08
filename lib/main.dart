@@ -22,7 +22,7 @@ class MiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WiRegistroo',
+      title: 'WiRegistrooo',
       debugShowCheckedModeBanner: false,
       theme: AppEstilos.temaApp,
       home: const PantallaCargando(),
