@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../recursos/colores.dart';
 import '../recursos/constantes.dart';
 import '../recursos/widgets.dart';
+import '../inicio/principal.dart'; // 📝 Importación directa para velocidad
 
 class PantallaGastos extends StatelessWidget {
   const PantallaGastos({super.key});
@@ -16,12 +17,15 @@ class PantallaGastos extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () =>
-              Navigator.pushReplacementNamed(context, '/principal'),
+          // 🚀 Navegación directa (más rápida)
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const PantallaPrincipal()),
+          ),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(AppConstantes.espacioMedio),
+        padding: AppConstantes.miwp,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -121,9 +125,13 @@ class PantallaGastos extends StatelessWidget {
         ),
       ),
 
-      // 🎈 Botón flotante amoroso
+      // 🎈 Botón flotante con navegación directa
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.pushReplacementNamed(context, '/principal'),
+        // 🚀 Navegación directa (más rápida)
+        onPressed: () => Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const PantallaPrincipal()),
+        ),
         icon: const Icon(Icons.home),
         label: const Text('Ir a Principal'),
         backgroundColor: AppColores.verdePrimario,

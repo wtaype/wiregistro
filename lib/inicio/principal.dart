@@ -25,8 +25,10 @@ class _EstadoPantallaPrincipal extends State<PantallaPrincipal> {
         backgroundColor: AppColores.verdePrimario,
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppConstantes.espacioMedio),
+      // 🔧 SOLUCIÓN: Scroll automático cuando aparece teclado
+      resizeToAvoidBottomInset: true,
+      body: SingleChildScrollView(
+        padding: AppConstantes.miwp,
         child: Form(
           key: _formularioKey,
           child: Column(
@@ -34,8 +36,9 @@ class _EstadoPantallaPrincipal extends State<PantallaPrincipal> {
               // 💳 Tarjeta de bienvenida compacta
               TarjetaInformacion(contenido: _construirTarjetaBienvenida()),
 
-              const SizedBox(height: AppConstantes.espacioGigante),
-
+              const SizedBox(
+                height: AppConstantes.espacioGrande,
+              ), // 🔧 Reducir espacio
               // 📝 Campos de texto
               CampoTexto(
                 etiqueta: 'Tu nombre',
@@ -46,7 +49,9 @@ class _EstadoPantallaPrincipal extends State<PantallaPrincipal> {
                     v?.trim().isEmpty == true ? 'Nombre requerido' : null,
               ),
 
-              const SizedBox(height: AppConstantes.espacioGrande),
+              const SizedBox(
+                height: AppConstantes.espacioMedio,
+              ), // 🔧 Reducir espacio
 
               CampoTexto(
                 etiqueta: 'Tu mensaje',
@@ -57,12 +62,12 @@ class _EstadoPantallaPrincipal extends State<PantallaPrincipal> {
                     v?.trim().isEmpty == true ? 'Mensaje requerido' : null,
               ),
 
-              const SizedBox(height: AppConstantes.espacioGigante),
+              const SizedBox(height: AppConstantes.espacioGrande),
 
               // 🎯 Botones compactos
               ..._construirBotones(),
 
-              const Spacer(),
+              const SizedBox(height: AppConstantes.espacioGrande),
 
               // 💡 Info compacta
               TarjetaInformacion(
@@ -70,6 +75,9 @@ class _EstadoPantallaPrincipal extends State<PantallaPrincipal> {
                 colorFondo: AppColores.verdeSuave,
                 contenido: _construirInfoAyuda(),
               ),
+
+              // 🔧 Espacio extra para el teclado
+              SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
             ],
           ),
         ),

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart'; // 🔥 AGREGAR
+import 'firebase_options.dart'; // 🔥 AGREGAR
 import 'inicio/cargando.dart';
-import 'inicio/principal.dart';
-import 'secciones/gastos.dart'; // ¡Nueva importación!
 import 'recursos/colores.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🔥 INICIALIZAR FIREBASE ANTES DE TODO
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: AppColores.verdeClaro,
@@ -22,14 +26,10 @@ class MiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WiRegistrooo',
+      title: 'WiRegistro',
       debugShowCheckedModeBanner: false,
       theme: AppEstilos.temaApp,
       home: const PantallaCargando(),
-      routes: {
-        '/principal': (context) => const PantallaPrincipal(),
-        '/gastos': (context) => const PantallaGastos(), // ¡Nueva ruta!
-      },
     );
   }
 }

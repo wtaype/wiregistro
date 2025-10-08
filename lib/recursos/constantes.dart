@@ -71,6 +71,23 @@ class AppConstantes {
   static const Duration animacionRapida = Duration(milliseconds: 300);
   static const Duration animacionLenta = Duration(milliseconds: 600);
   static const Duration tiempoCarga = Duration(seconds: 3);
+
+  // 📱 Padding estándar para toda la app - ¡Reutilizable!
+  static const EdgeInsets miwp = EdgeInsets.symmetric(
+    vertical: 9.0, // ⬆️⬇️ Arriba y abajo 9px
+    horizontal: 10.0, // ⬅️➡️ Izquierda y derecha 10px
+  );
+
+  // 🎨 Otros paddings útiles (opcionales)
+  static const EdgeInsets miwpL = EdgeInsets.symmetric(
+    vertical: 15.0,
+    horizontal: 20.0,
+  );
+
+  static const EdgeInsets miwpS = EdgeInsets.symmetric(
+    vertical: 5.0,
+    horizontal: 8.0,
+  );
 }
 
 // 🔗 URLs y endpoints

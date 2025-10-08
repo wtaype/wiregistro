@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../recursos/colores.dart';
+import '../wiauth/registro.dart'; // 📝 Importación directa para velocidad
 
 class PantallaCargando extends StatefulWidget {
   const PantallaCargando({super.key});
@@ -30,9 +31,15 @@ class _PantallaCargandoState extends State<PantallaCargando>
     _navegar();
   }
 
+  // 🚀 Navegación directa (más rápida que routes)
   _navegar() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) Navigator.pushReplacementNamed(context, '/gastos');
+    await Future.delayed(const Duration(seconds: 1));
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const PantallaRegistro()),
+      );
+    }
   }
 
   @override
@@ -62,10 +69,7 @@ class _PantallaCargandoState extends State<PantallaCargando>
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text(
-                    'WiRegistro',
-                    style: AppEstilos.tituloGrande,
-                  ), // ¡Una línea!
+                  Text('WiRegistro', style: AppEstilos.tituloGrande),
                   const SizedBox(height: 40),
                   CircularProgressIndicator(color: AppColores.verdePrimario),
                 ],
