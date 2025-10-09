@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Usuario {
   final String email, usuario, nombre, apellidos, grupo, genero;
   final String rol;
   final bool activo;
-  final int creacion, ultimaActividad;
+  final Timestamp creacion, ultimaActividad;
   final String uid;
 
   const Usuario({
@@ -19,25 +21,26 @@ class Usuario {
     required this.ultimaActividad,
   });
 
-  // 🔄 Desde Firebase
-  factory Usuario.fromMap(Map<dynamic, dynamic> data, String usuarioId) =>
-      Usuario(
-        email: data['email'] ?? '',
-        usuario: usuarioId,
-        nombre: data['nombre'] ?? '',
-        apellidos: data['apellidos'] ?? '',
-        grupo: data['grupo'] ?? 'general',
-        genero: data['genero'] ?? 'masculino',
-        rol: data['rol'] ?? 'smile',
-        activo: data['activo'] ?? true,
-        creacion: data['creacion'] ?? DateTime.now().millisecondsSinceEpoch,
-        uid: data['uid'] ?? '',
-        ultimaActividad:
-            data['ultimaActividad'] ?? DateTime.now().millisecondsSinceEpoch,
-      );
+  // 🔄 Desde Firestore
+  factory Usuario.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Usuario(
+      email: data['email'] ?? '',
+      usuario: doc.id,
+      nombre: data['nombre'] ?? '',
+      apellidos: data['apellidos'] ?? '',
+      grupo: data['grupo'] ?? 'general',
+      genero: data['genero'] ?? 'masculino',
+      rol: data['rol'] ?? 'smile',
+      activo: data['activo'] ?? true,
+      creacion: data['creacion'] ?? Timestamp.now(),
+      uid: data['uid'] ?? '',
+      ultimaActividad: data['ultimaActividad'] ?? Timestamp.now(),
+    );
+  }
 
-  // 🔄 A Firebase
-  Map<String, dynamic> toMap() => {
+  // 🔄 A Firestore
+  Map<String, dynamic> toFirestore() => {
     'email': email.toLowerCase().trim(),
     'usuario': usuario.toLowerCase().trim(),
     'nombre': nombre.trim(),
@@ -61,7 +64,7 @@ class Usuario {
     required String genero,
     required String uid,
   }) {
-    final ahora = DateTime.now().millisecondsSinceEpoch;
+    final ahora = Timestamp.now();
     return Usuario(
       email: email.toLowerCase().trim(),
       usuario: usuario.toLowerCase().trim(),

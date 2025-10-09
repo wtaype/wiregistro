@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// 🎨 Nuestra paleta de colores guapos y gorditos
+// 🎨 Nuestra paleta de colores completa
 class AppColores {
   // 🌿 Verdes gorditos y bonitos
   static const Color verdePrimario = Color(0xFF4CAF50);
@@ -9,13 +9,28 @@ class AppColores {
   static const Color verdeClaro = Color(0xFFB9F6CA);
   static const Color verdeSuave = Color(0xFFE8F5E8);
 
-  // 🖤 Solo para texto cuando necesitemos contraste
+  // 🖤 Textos
   static const Color textoOscuro = Color(0xFF2E2E2E);
   static const Color textoVerde = Color(0xFF388E3C);
   static const Color blanco = Colors.white;
+
+  // 🚨 Estados y mensajes - NUEVOS
+  static const Color error = Color(0xFFE53935);
+  static const Color exito = Color(0xFF4CAF50);
+  static const Color advertencia = Color(0xFFFF9800);
+  static const Color info = Color(0xFF2196F3);
+
+  // 🎨 UI adicionales - NUEVOS
+  static const Color gris = Color(0xFF9E9E9E);
+  static const Color grisClaro = Color(0xFFF5F5F5);
+  static const Color grisOscuro = Color(0xFF424242);
+
+  // 🌟 Extras para casos especiales
+  static const Color transparente = Colors.transparent;
+  static const Color sombra = Color(0x1A000000);
 }
 
-// 🎭 Nuestro "CSS root" - ¡Poppins centralizado! 🎨 Theme completo para MaterialApp
+// 🎭 Nuestro "CSS root" - ¡Poppins centralizado!
 class AppEstilos {
   static ThemeData get temaApp => ThemeData(
     scaffoldBackgroundColor: AppColores.verdeClaro,
@@ -23,25 +38,19 @@ class AppEstilos {
 
     // 🎭 ¡Fuente por defecto para TODA la app!
     fontFamily: GoogleFonts.poppins().fontFamily, // Como tu * en CSS
-    // 📱 AppBar theme [START]
+    // 📱 AppBar theme
     appBarTheme: AppBarTheme(
       backgroundColor: AppColores.verdePrimario,
       foregroundColor: AppColores.blanco,
-      elevation: 4.0, // 📐 MÁS sombra (era 4.0, ahora 8.0)
-      toolbarHeight: 45.0, // 📏 45px de altura (era 56.0)
+      elevation: 4.0,
+      toolbarHeight: 45.0,
       titleTextStyle: textoBoton,
       centerTitle: true,
-      iconTheme: IconThemeData(
-        color: AppColores.blanco,
-        size: 22.0, // 🔧 Íconos más chicos para 45px
-      ),
-      // 🌟 Sombra personalizada
-      shadowColor: AppColores.verdePrimario.withOpacity(
-        0.3,
-      ), // Color de la sombra
+      iconTheme: IconThemeData(color: AppColores.blanco, size: 22.0),
+      shadowColor: AppColores.verdePrimario.withOpacity(0.3),
     ),
 
-    // 🎯 Ahora tus estilos pueden ser más simples
+    // 🎯 Text theme
     textTheme: TextTheme(
       headlineLarge: tituloGrande,
       headlineMedium: tituloMedio,
@@ -101,7 +110,7 @@ class AppEstilos {
   );
 }
 
-// 🎯 Clases de validación visual - NUEVAS
+// 🎯 Clases de validación visual
 class VdError {
   static const Color borde = Color(0xFFE53935);
   static const Color texto = Color(0xFFD32F2F);

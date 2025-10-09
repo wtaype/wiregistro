@@ -19,7 +19,7 @@ dependencies:
   firebase_core: ^4.1.1
   firebase_auth: ^6.1.0
   cloud_firestore: ^6.0.2
-  firebase_database: ^12.0.2 
+  # firebase_database: ^12.0.2 
   email_validator: ^3.0.0
   
   # ====== UI/UX ESENCIALES ======
@@ -60,7 +60,5 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
-  
-  # ====== ASSETS (SOLO TU LOGO EXISTENTE) ======
   assets:
-    - web/logo.png
+    - assets/images/

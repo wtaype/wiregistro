@@ -9,16 +9,30 @@ class AuthServicio {
   static User? get usuarioActual => _auth.currentUser;
   static bool get estaLogueado => usuarioActual != null;
 
-  // 📧 Crear cuenta
+  // 📧 Crear cuenta CON DEBUG
   static Future<User> crearCuenta(String email, String password) async {
     try {
+      print('🔐 Creando cuenta Auth para: $email');
+
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email.toLowerCase().trim(),
         password: password,
       );
+
+      if (credential.user == null) {
+        throw Exception('Usuario creado pero credential.user es null');
+      }
+
+      print('✅ Cuenta Auth creada exitosamente');
+      print('🆔 UID: ${credential.user!.uid}');
+
       return credential.user!;
     } on FirebaseAuthException catch (e) {
-      throw Exception(_obtenerMensajeError(e.code));
+      print('❌ Error Firebase Auth: ${e.code} - ${e.message}');
+      throw Exception(_mensajeError(e.code));
+    } catch (e) {
+      print('❌ Error general Auth: $e');
+      throw Exception('Error inesperado: $e');
     }
   }
 
@@ -29,11 +43,13 @@ class AuthServicio {
 
       // Si no es email, buscar por usuario
       if (!EmailValidator.validate(emailOUsuario)) {
+        print('🔍 Buscando email para usuario: $emailOUsuario');
         final emailEncontrado = await DatabaseServicio.obtenerEmailPorUsuario(
           emailOUsuario,
         );
         if (emailEncontrado == null) throw Exception('Usuario no encontrado');
         email = emailEncontrado;
+        print('✅ Email encontrado: $email');
       }
 
       final credential = await _auth.signInWithEmailAndPassword(
@@ -41,14 +57,14 @@ class AuthServicio {
         password: password,
       );
 
-      // Actualizar actividad si login por usuario
+      // Actualizar actividad
       if (!EmailValidator.validate(emailOUsuario)) {
         DatabaseServicio.actualizarUltimaActividad(emailOUsuario);
       }
 
       return credential.user!;
     } on FirebaseAuthException catch (e) {
-      throw Exception(_obtenerMensajeError(e.code));
+      throw Exception(_mensajeError(e.code));
     }
   }
 
@@ -60,27 +76,18 @@ class AuthServicio {
     try {
       await _auth.sendPasswordResetEmail(email: email.toLowerCase().trim());
     } on FirebaseAuthException catch (e) {
-      throw Exception(_obtenerMensajeError(e.code));
+      throw Exception(_mensajeError(e.code));
     }
   }
 
-  // 🎯 Mensajes de error centralizados
-  static String _obtenerMensajeError(String codigo) {
-    switch (codigo) {
-      case 'email-already-in-use':
-        return 'Email ya registrado';
-      case 'weak-password':
-        return 'Contraseña muy débil';
-      case 'invalid-email':
-        return 'Email inválido';
-      case 'user-not-found':
-        return 'Usuario no encontrado';
-      case 'wrong-password':
-        return 'Contraseña incorrecta';
-      case 'network-request-failed':
-        return 'Sin conexión a internet';
-      default:
-        return 'Error de autenticación';
-    }
-  }
+  // 🎯 Mensajes de error
+  static String _mensajeError(String codigo) => switch (codigo) {
+    'email-already-in-use' => 'Email ya registrado',
+    'weak-password' => 'Contraseña muy débil',
+    'invalid-email' => 'Email inválido',
+    'user-not-found' => 'Usuario no encontrado',
+    'wrong-password' => 'Contraseña incorrecta',
+    'network-request-failed' => 'Sin conexión a internet',
+    _ => 'Error de autenticación',
+  };
 }
