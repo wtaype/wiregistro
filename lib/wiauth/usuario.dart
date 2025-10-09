@@ -29,7 +29,7 @@ class Usuario {
       usuario: doc.id,
       nombre: data['nombre'] ?? '',
       apellidos: data['apellidos'] ?? '',
-      grupo: data['grupo'] ?? 'general',
+      grupo: data['grupo'] ?? 'genial',
       genero: data['genero'] ?? 'masculino',
       rol: data['rol'] ?? 'smile',
       activo: data['activo'] ?? true,

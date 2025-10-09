@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:email_validator/email_validator.dart';
 import '../recursos/colores.dart';
 import '../recursos/constantes.dart';
 import '../secciones/gastos.dart';
@@ -29,15 +28,13 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     ])
       key: TextEditingController(),
   };
-
   final _focusNodes = <String, FocusNode>{
     'email': FocusNode(),
     'usuario': FocusNode(),
   };
 
   String _genero = 'masculino';
-  bool _cargando = false;
-  bool _registroCompletado = false; // 🛡️ Protección contra duplicados
+  bool _cargando = false, _registroCompletado = false;
   bool _verPassword = false, _verConfirm = false;
 
   final _validacion = <String, bool>{
@@ -56,41 +53,34 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
   }
 
   void _configurarListeners() {
-    // Sanitización email
-    _controllers['email']!.addListener(() {
-      final text = _controllers['email']!.text;
-      final sanitized = text.toLowerCase().replaceAll(RegExp(r'\s+'), '');
-      if (text != sanitized) {
-        _controllers['email']!.value = TextEditingValue(
-          text: sanitized,
-          selection: TextSelection.collapsed(offset: sanitized.length),
-        );
-      }
-    });
+    // 🧹 Sanitización automática - COMPACTO
+    _controllers['email']!.addListener(
+      () => _sanitizar('email', AppFormatos.email),
+    );
+    _controllers['usuario']!.addListener(
+      () => _sanitizar('usuario', AppFormatos.usuario),
+    );
 
-    // Sanitización usuario
-    _controllers['usuario']!.addListener(() {
-      final text = _controllers['usuario']!.text;
-      final sanitized = text
-          .toLowerCase()
-          .replaceAll(RegExp(r'\s+'), '')
-          .replaceAll(RegExp(r'[^a-z0-9_]'), '');
-      if (text != sanitized) {
-        _controllers['usuario']!.value = TextEditingValue(
-          text: sanitized,
-          selection: TextSelection.collapsed(offset: sanitized.length),
-        );
-      }
-    });
+    // 🎯 Validación en blur - COMPACTO
+    _focusNodes['email']!.addListener(
+      () => !_focusNodes['email']!.hasFocus ? _validarEnBlur('email') : null,
+    );
+    _focusNodes['usuario']!.addListener(
+      () =>
+          !_focusNodes['usuario']!.hasFocus ? _validarEnBlur('usuario') : null,
+    );
+  }
 
-    // Validación en blur
-    _focusNodes['email']!.addListener(() {
-      if (!_focusNodes['email']!.hasFocus) _validarEmailEnBlur();
-    });
-
-    _focusNodes['usuario']!.addListener(() {
-      if (!_focusNodes['usuario']!.hasFocus) _validarUsuarioEnBlur();
-    });
+  // 🧹 Método sanitización universal - REUTILIZABLE
+  void _sanitizar(String key, String Function(String) formatear) {
+    final controller = _controllers[key]!;
+    final sanitized = formatear(controller.text);
+    if (controller.text != sanitized) {
+      controller.value = TextEditingValue(
+        text: sanitized,
+        selection: TextSelection.collapsed(offset: sanitized.length),
+      );
+    }
   }
 
   @override
@@ -99,7 +89,6 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
       backgroundColor: AppColores.verdeClaro,
       appBar: AppBar(
         title: Text('Registro', style: AppEstilos.textoBoton),
-        backgroundColor: AppColores.verdePrimario,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -109,9 +98,9 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
           child: Column(
             children: [
               _construirLogo(),
-              const SizedBox(height: AppConstantes.espacioGrande),
+              AppConstantes.espacioGrandeWidget,
 
-              // Email
+              // 📧 Campos de validación - COMPACTOS
               _campoValidacion(
                 'email',
                 'Email',
@@ -119,18 +108,16 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                 Icons.email,
                 TextInputType.emailAddress,
               ),
-              const SizedBox(height: AppConstantes.espacioMedio),
-
-              // Usuario
+              AppConstantes.espacioMedioWidget,
               _campoValidacion(
                 'usuario',
                 'Usuario',
-                'usuario_unico',
+                'Ingresa usuario',
                 Icons.person,
               ),
-              const SizedBox(height: AppConstantes.espacioMedio),
+              AppConstantes.espacioMedioWidget,
 
-              // Nombre y Apellidos
+              // 📝 Campos normales - COMPACTOS
               Row(
                 children: [
                   Expanded(
@@ -141,7 +128,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                       Icons.badge,
                     ),
                   ),
-                  const SizedBox(width: AppConstantes.espacioChico),
+                  const SizedBox(width: 5),
                   Expanded(
                     child: _campoNormal(
                       'apellidos',
@@ -151,38 +138,53 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                   ),
                 ],
               ),
-              const SizedBox(height: AppConstantes.espacioMedio),
+              AppConstantes.espacioMedioWidget,
 
-              // Grupo
               _campoNormal(
                 'grupo',
                 'Grupo',
                 'familia, amigos, trabajo',
                 Icons.group,
               ),
-              const SizedBox(height: AppConstantes.espacioMedio),
+              AppConstantes.espacioMedioWidget,
 
-              // Género
-              _construirSelectorGenero(),
-              const SizedBox(height: AppConstantes.espacioMedio),
+              // 🚻 Género - COMPACTO
+              DropdownButtonFormField<String>(
+                value: _genero,
+                decoration: _decoracion(
+                  'Género',
+                  'Selecciona tu género',
+                  Icons.wc,
+                ),
+                items: ['masculino', 'femenino']
+                    .map(
+                      (g) => DropdownMenuItem(
+                        value: g,
+                        child: Text(g.capitalize()),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) => setState(() => _genero = v!),
+              ),
+              AppConstantes.espacioMedioWidget,
 
-              // Contraseñas
+              // 🔒 Contraseñas - COMPACTAS
               _campoPassword(
                 'password',
                 'Contraseña',
                 _verPassword,
                 () => setState(() => _verPassword = !_verPassword),
               ),
-              const SizedBox(height: AppConstantes.espacioMedio),
+              AppConstantes.espacioMedioWidget,
               _campoPassword(
                 'confirmPassword',
                 'Confirmar Contraseña',
                 _verConfirm,
                 () => setState(() => _verConfirm = !_verConfirm),
               ),
-              const SizedBox(height: AppConstantes.espacioGigante),
+              AppConstantes.espacioGrandeWidget,
 
-              // 🎯 Botón con protección completa
+              // 🎯 Botón - COMPACTO
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -197,14 +199,11 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                           ),
                         )
                       : Icon(Icons.person_add),
-                  label: Text(_obtenerTextoBoton()),
+                  label: Text(_textoBoton()),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _registroCompletado
-                        ? AppColores.exito
-                        : AppColores.verdePrimario,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppColores.gris,
-                    padding: const EdgeInsets.symmetric(
+                    backgroundColor: _colorBoton(),
+                    foregroundColor: _colorTextoBoton(),
+                    padding: EdgeInsets.symmetric(
                       vertical: AppConstantes.espacioMedio,
                     ),
                     shape: RoundedRectangleBorder(
@@ -216,7 +215,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                   ),
                 ),
               ),
-              const SizedBox(height: AppConstantes.espacioGrande),
+              AppConstantes.espacioGrandeWidget,
             ],
           ),
         ),
@@ -224,31 +223,32 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     );
   }
 
-  // 🎨 Logo simple
+  // 🎨 Logo - USANDO CONSTANTE
   Widget _construirLogo() => Container(
-    padding: const EdgeInsets.all(20),
+    width: double.infinity,
+    padding: AppConstantes.miwpL,
     decoration: BoxDecoration(
       color: AppColores.verdeSuave,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppConstantes.radioMedio),
       boxShadow: [
         BoxShadow(
           color: AppColores.verdePrimario.withOpacity(0.2),
           blurRadius: 10,
-          offset: const Offset(0, 5),
+          offset: Offset(0, 5),
         ),
       ],
     ),
     child: Column(
       children: [
-        AppConstantes.miLogoCircular, // 🔥 ¡Una línea limpia!
-        const SizedBox(height: AppConstantes.espacioChico),
+        AppConstantes.miLogoCircular,
+        AppConstantes.espacioChicoWidget,
         Text(AppConstantes.nombreApp, style: AppEstilos.tituloMedio),
         Text('Únete a la familia smile 😊', style: AppEstilos.textoNormal),
       ],
     ),
   );
 
-  // Campo con validación visual
+  // 📝 Campo validación - COMPACTO
   Widget _campoValidacion(
     String key,
     String label,
@@ -256,16 +256,15 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     IconData icon, [
     TextInputType? keyboard,
   ]) {
-    final controller = _controllers[key]!;
     final validando = _validacion['validando${key.capitalize()}'] ?? false;
     final tieneError = _validacion['${key}Existe'] ?? false;
     final esExito = (_validacion['${key}Validado'] ?? false) && !tieneError;
 
     return TextFormField(
-      controller: controller,
-      focusNode: key == 'email' || key == 'usuario' ? _focusNodes[key] : null,
+      controller: _controllers[key]!,
+      focusNode: _focusNodes[key],
       keyboardType: keyboard,
-      validator: key == 'email' ? _validarEmail : _validarUsuario,
+      validator: key == 'email' ? AppValidadores.email : AppValidadores.usuario,
       style: AppEstilos.textoNormal,
       inputFormatters: key == 'email'
           ? [FilteringTextInputFormatter.deny(RegExp(r'\s'))]
@@ -280,25 +279,34 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
               label: label,
               hint: hint,
               icon: icon,
-              suffixIcon: validando ? _cargandoWidget() : null,
+              suffixIcon: validando ? AppWidgets.cargando(size: 12) : null,
             )
           : esExito
           ? VdGreen.decoration(
               label: label,
               hint: hint,
               icon: icon,
-              suffixIcon: validando ? _cargandoWidget() : null,
+              suffixIcon: validando ? AppWidgets.cargando(size: 12) : null,
             )
-          : _decoracionNormal(
+          : _decoracion(
               label,
               hint,
               icon,
-              validando ? _cargandoWidget() : null,
+              validando
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3.5,
+                        color: AppColores.verdePrimario,
+                      ),
+                    )
+                  : null,
             ),
     );
   }
 
-  // Campo normal
+  // 📝 Campo normal - UNA LÍNEA
   Widget _campoNormal(
     String key,
     String label,
@@ -306,12 +314,12 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     IconData? icon,
   ]) => TextFormField(
     controller: _controllers[key]!,
-    validator: (v) => v?.trim().isEmpty ?? true ? '$label requerido' : null,
+    validator: (v) => AppValidadores.requerido(v, label),
     style: AppEstilos.textoNormal,
-    decoration: _decoracionNormal(label, hint, icon ?? Icons.edit),
+    decoration: _decoracion(label, hint, icon ?? Icons.edit),
   );
 
-  // Campo password
+  // 🔒 Campo password - COMPACTO
   Widget _campoPassword(
     String key,
     String label,
@@ -320,9 +328,11 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
   ) => TextFormField(
     controller: _controllers[key]!,
     obscureText: !mostrar,
-    validator: key == 'password' ? _validarPassword : _validarConfirmPassword,
+    validator: key == 'password'
+        ? AppValidadores.password
+        : (v) => AppValidadores.requerido(v, label),
     style: AppEstilos.textoNormal,
-    decoration: _decoracionNormal(
+    decoration: _decoracion(
       label,
       '••••••••',
       Icons.lock,
@@ -336,21 +346,8 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     ),
   );
 
-  // Selector género
-  Widget _construirSelectorGenero() => DropdownButtonFormField<String>(
-    value: _genero,
-    decoration: _decoracionNormal('Género', 'Selecciona tu género', Icons.wc),
-    items: ['masculino', 'femenino', 'otro']
-        .map(
-          (genero) =>
-              DropdownMenuItem(value: genero, child: Text(genero.capitalize())),
-        )
-        .toList(),
-    onChanged: (valor) => setState(() => _genero = valor!),
-  );
-
-  // Decoración normal
-  InputDecoration _decoracionNormal(
+  // 🎨 Decoración universal - REUTILIZABLE
+  InputDecoration _decoracion(
     String label,
     String hint,
     IconData icon, [
@@ -371,119 +368,76 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
     fillColor: Colors.white,
   );
 
-  Widget _cargandoWidget() => SizedBox(
-    width: 20,
-    height: 20,
-    child: CircularProgressIndicator(strokeWidth: 2),
-  );
+  // 🎯 Métodos de estado del botón - COMPACTOS
+  String _textoBoton() => _registroCompletado
+      ? '¡Cuenta Creada! ✅'
+      : _cargando
+      ? 'Registrando...'
+      : 'Crear Cuenta';
+  Color _colorBoton() => _registroCompletado
+      ? AppColores.exito
+      : _puedeRegistrar()
+      ? AppColores.verdePrimario
+      : AppColores.verdeSuave;
+  Color _colorTextoBoton() => _puedeRegistrar() || _registroCompletado
+      ? Colors.white
+      : AppColores.textoOscuro;
 
-  // 🎯 Texto dinámico del botón
-  String _obtenerTextoBoton() {
-    if (_registroCompletado) return '¡Cuenta Creada! ✅';
-    if (_cargando) return 'Registrando...';
-    return 'Crear Cuenta';
-  }
+  // 🎯 Validación en blur - UNIVERSAL
+  void _validarEnBlur(String tipo) async {
+    final valor = _controllers[tipo]!.text.trim();
+    final tipoCapitalizado = tipo.capitalize();
 
-  // Validación en blur
-  void _validarEmailEnBlur() async {
-    final email = _controllers['email']!.text.trim();
     setState(() {
-      _validacion['emailValidado'] = false;
-      _validacion['emailExiste'] = false;
+      _validacion['${tipo}Validado'] = false;
+      _validacion['${tipo}Existe'] = false;
+      _validacion['validando$tipoCapitalizado'] = true;
     });
-    if (email.isEmpty || !EmailValidator.validate(email)) return;
-    setState(() => _validacion['validandoEmail'] = true);
-    final existe = await DatabaseServicio.emailExiste(email);
-    if (mounted) {
-      setState(() {
-        _validacion['emailExiste'] = existe;
-        _validacion['emailValidado'] = true;
-        _validacion['validandoEmail'] = false;
-      });
-    }
-  }
 
-  void _validarUsuarioEnBlur() async {
-    final usuario = _controllers['usuario']!.text.trim();
-    setState(() {
-      _validacion['usuarioValidado'] = false;
-      _validacion['usuarioExiste'] = false;
-    });
-    if (usuario.length < 3 || !RegExp(r'^[a-z0-9_]+$').hasMatch(usuario))
+    if (valor.isEmpty || valor.length < 3) {
+      setState(() => _validacion['validando$tipoCapitalizado'] = false);
       return;
-    setState(() => _validacion['validandoUsuario'] = true);
-    final existe = await DatabaseServicio.usuarioExiste(usuario);
+    }
+
+    final existe = tipo == 'email'
+        ? await DatabaseServicio.emailExiste(valor)
+        : await DatabaseServicio.usuarioExiste(valor);
+
     if (mounted) {
       setState(() {
-        _validacion['usuarioExiste'] = existe;
-        _validacion['usuarioValidado'] = true;
-        _validacion['validandoUsuario'] = false;
+        _validacion['${tipo}Existe'] = existe;
+        _validacion['${tipo}Validado'] = true;
+        _validacion['validando$tipoCapitalizado'] = false;
       });
     }
   }
 
-  // Validaciones
-  String? _validarEmail(String? email) {
-    if (email?.trim().isEmpty ?? true) return 'Email requerido';
-    if (!EmailValidator.validate(email!)) return 'Email inválido';
-    if (_validacion['emailExiste']!) return 'Email ya registrado';
-    return null;
-  }
-
-  String? _validarUsuario(String? usuario) {
-    if (usuario?.trim().isEmpty ?? true) return 'Usuario requerido';
-    if (usuario!.length < 3) return 'Mínimo 3 caracteres';
-    if (!RegExp(r'^[a-z0-9_]+$').hasMatch(usuario))
-      return 'Solo letras, números y _';
-    if (_validacion['usuarioExiste']!) return 'Usuario no disponible';
-    return null;
-  }
-
-  String? _validarPassword(String? password) {
-    if (password?.isEmpty ?? true) return 'Contraseña requerida';
-    if (password!.length < 6) return 'Mínimo 6 caracteres';
-    return null;
-  }
-
-  String? _validarConfirmPassword(String? confirmPassword) {
-    if (confirmPassword?.isEmpty ?? true) return 'Confirma tu contraseña';
-    if (confirmPassword != _controllers['password']!.text)
-      return 'Contraseñas no coinciden';
-    return null;
-  }
-
-  // 🛡️ Verificar si puede registrar (con protección)
+  // 🛡️ Verificar si puede registrar - COMPACTO
   bool _puedeRegistrar() =>
       !_cargando &&
       !_registroCompletado &&
       !(_validacion['emailExiste'] ?? true) &&
       !(_validacion['usuarioExiste'] ?? true) &&
-      !(_validacion['validandoEmail'] ?? true) &&
-      !(_validacion['validandoUsuario'] ?? true) &&
       (_validacion['emailValidado'] ?? false) &&
       (_validacion['usuarioValidado'] ?? false) &&
       _controllers.values.every((c) => c.text.isNotEmpty) &&
       _controllers['password']!.text.length >= 6 &&
       _controllers['confirmPassword']!.text == _controllers['password']!.text;
 
-  // 🚀 Registrar usuario CON PROTECCIÓN TOTAL
+  // 🚀 Registrar usuario - COMPACTO
   void _registrarUsuario() async {
-    if (!_form.currentState!.validate() || _cargando || _registroCompletado)
-      return;
+    if (!_form.currentState!.validate() || !_puedeRegistrar()) return;
 
     setState(() => _cargando = true);
 
     try {
-      print('🚀 Iniciando proceso de registro...');
-
-      // 1. 🐰 Crear cuenta Auth
+      // 1. 🐰 Auth
       final user = await AuthServicio.crearCuenta(
         _controllers['email']!.text,
         _controllers['password']!.text,
       );
-      print('✅ Paso 1: Auth completado');
 
-      // 2. 📝 Crear Usuario
+      // 2. 📝 Usuario
       final usuario = Usuario.nuevo(
         email: _controllers['email']!.text,
         usuario: _controllers['usuario']!.text,
@@ -493,60 +447,49 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
         genero: _genero,
         uid: user.uid,
       );
-      print('✅ Paso 2: Usuario creado');
 
-      // 3. 🐢 Guardar en Firestore
+      // 3. 🐢 Firestore
       await DatabaseServicio.guardarUsuario(usuario);
-      print('✅ Paso 3: Firestore completado');
 
-      // 4. ✅ Éxito total
+      // 4. ✅ Éxito
       setState(() => _registroCompletado = true);
-      _mostrarExito('¡Cuenta creada exitosamente! 🎉');
+      _mostrarMensaje('¡Cuenta creada exitosamente! 🎉', AppColores.exito);
 
-      await Future.delayed(const Duration(seconds: 3));
-
-      if (mounted) {
+      await Future.delayed(AppConstantes.tiempoCarga);
+      if (mounted)
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const PantallaGastos()),
+          MaterialPageRoute(builder: (_) => PantallaGastos()),
         );
-      }
     } catch (e) {
-      print('❌ Error en registro: $e');
-      _mostrarError(e.toString().replaceAll('Exception: ', ''));
+      _mostrarMensaje(
+        e.toString().replaceAll('Exception: ', ''),
+        AppColores.error,
+      );
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
   }
 
-  // Mensajes
-  void _mostrarError(String mensaje) =>
+  // 🎯 Mostrar mensaje - UNIVERSAL
+  void _mostrarMensaje(String mensaje, Color color) =>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(mensaje),
-          backgroundColor: AppColores.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-
-  void _mostrarExito(String mensaje) =>
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(mensaje),
-          backgroundColor: AppColores.exito,
+          backgroundColor: color,
           behavior: SnackBarBehavior.floating,
         ),
       );
 
   @override
   void dispose() {
-    _controllers.values.forEach((controller) => controller.dispose());
-    _focusNodes.values.forEach((node) => node.dispose());
+    _controllers.values.forEach((c) => c.dispose());
+    _focusNodes.values.forEach((n) => n.dispose());
     super.dispose();
   }
 }
 
-// Extensions
+// 🎯 Extensions
 extension StringExtension on String {
   String capitalize() =>
       isNotEmpty ? '${this[0].toUpperCase()}${substring(1)}' : '';
@@ -557,10 +500,8 @@ class LowerCaseTextFormatter extends TextInputFormatter {
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
     TextEditingValue newValue,
-  ) {
-    return TextEditingValue(
-      text: newValue.text.toLowerCase(),
-      selection: newValue.selection,
-    );
-  }
+  ) => TextEditingValue(
+    text: newValue.text.toLowerCase(),
+    selection: newValue.selection,
+  );
 }

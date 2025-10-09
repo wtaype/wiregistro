@@ -1,55 +1,41 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:email_validator/email_validator.dart';
+import '../recursos/constantes.dart';
 import 'firestore_fb.dart';
+import 'usuario.dart'; // 🔥 AGREGAR
 
 class AuthServicio {
   static final _auth = FirebaseAuth.instance;
 
-  // 🔐 Propiedades
+  // 🔐 Propiedades - UNA LÍNEA CADA UNA
   static User? get usuarioActual => _auth.currentUser;
   static bool get estaLogueado => usuarioActual != null;
 
-  // 📧 Crear cuenta CON DEBUG
+  // 📧 Crear cuenta - COMPACTO
   static Future<User> crearCuenta(String email, String password) async {
     try {
-      print('🔐 Creando cuenta Auth para: $email');
-
       final credential = await _auth.createUserWithEmailAndPassword(
-        email: email.toLowerCase().trim(),
+        email: AppFormatos.email(email),
         password: password,
       );
-
-      if (credential.user == null) {
-        throw Exception('Usuario creado pero credential.user es null');
-      }
-
-      print('✅ Cuenta Auth creada exitosamente');
-      print('🆔 UID: ${credential.user!.uid}');
-
       return credential.user!;
     } on FirebaseAuthException catch (e) {
-      print('❌ Error Firebase Auth: ${e.code} - ${e.message}');
-      throw Exception(_mensajeError(e.code));
-    } catch (e) {
-      print('❌ Error general Auth: $e');
-      throw Exception('Error inesperado: $e');
+      throw Exception(AppFirebase.mensajeError(e.code));
     }
   }
 
-  // 🔑 Login
+  // 🔑 Login - COMPACTO
   static Future<User> login(String emailOUsuario, String password) async {
     try {
-      String email = emailOUsuario.toLowerCase().trim();
+      String email = AppFormatos.email(emailOUsuario);
 
-      // Si no es email, buscar por usuario
+      // Si no es email, buscar por usuario - COMPACTO
       if (!EmailValidator.validate(emailOUsuario)) {
-        print('🔍 Buscando email para usuario: $emailOUsuario');
         final emailEncontrado = await DatabaseServicio.obtenerEmailPorUsuario(
           emailOUsuario,
         );
         if (emailEncontrado == null) throw Exception('Usuario no encontrado');
         email = emailEncontrado;
-        print('✅ Email encontrado: $email');
       }
 
       final credential = await _auth.signInWithEmailAndPassword(
@@ -57,37 +43,64 @@ class AuthServicio {
         password: password,
       );
 
-      // Actualizar actividad
+      // Actualizar actividad si es usuario (no email)
       if (!EmailValidator.validate(emailOUsuario)) {
         DatabaseServicio.actualizarUltimaActividad(emailOUsuario);
       }
 
       return credential.user!;
     } on FirebaseAuthException catch (e) {
-      throw Exception(_mensajeError(e.code));
+      throw Exception(AppFirebase.mensajeError(e.code));
     }
   }
 
-  // 🚪 Cerrar sesión
+  // 🚪 Cerrar sesión - UNA LÍNEA
   static Future<void> logout() async => await _auth.signOut();
 
-  // 🔄 Restablecer contraseña
+  // 🔄 Restablecer contraseña - COMPACTO
   static Future<void> restablecerPassword(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email.toLowerCase().trim());
+      await _auth.sendPasswordResetEmail(email: AppFormatos.email(email));
     } on FirebaseAuthException catch (e) {
-      throw Exception(_mensajeError(e.code));
+      throw Exception(AppFirebase.mensajeError(e.code));
     }
   }
 
-  // 🎯 Mensajes de error
-  static String _mensajeError(String codigo) => switch (codigo) {
-    'email-already-in-use' => 'Email ya registrado',
-    'weak-password' => 'Contraseña muy débil',
-    'invalid-email' => 'Email inválido',
-    'user-not-found' => 'Usuario no encontrado',
-    'wrong-password' => 'Contraseña incorrecta',
-    'network-request-failed' => 'Sin conexión a internet',
-    _ => 'Error de autenticación',
-  };
+  // 🔑 Login MEJORADO - AGREGAR ESTE MÉTODO
+  static Future<Usuario> loginMejorado(
+    String emailOUsuario,
+    String password,
+  ) async {
+    try {
+      String email = AppFormatos.emailOUsuario(emailOUsuario);
+      Usuario? usuarioCompleto;
+
+      // Si no es email, buscar por usuario
+      if (!EmailValidator.validate(emailOUsuario)) {
+        usuarioCompleto = await DatabaseServicio.obtenerUsuario(emailOUsuario);
+        if (usuarioCompleto == null) {
+          throw Exception('Usuario "$emailOUsuario" no encontrado');
+        }
+        email = usuarioCompleto.email;
+      }
+
+      // Hacer login con Firebase Auth
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+
+      // Si no tenemos el usuario completo, obtenerlo por email
+      if (usuarioCompleto == null) {
+        usuarioCompleto = await DatabaseServicio.obtenerUsuarioPorEmail(email);
+        if (usuarioCompleto == null) {
+          throw Exception('Error obteniendo datos del usuario');
+        }
+      }
+
+      // Actualizar última actividad
+      await DatabaseServicio.actualizarUltimaActividad(usuarioCompleto.usuario);
+
+      return usuarioCompleto;
+    } on FirebaseAuthException catch (e) {
+      throw Exception(AppFirebase.mensajeError(e.code));
+    }
+  }
 }

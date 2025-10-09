@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../recursos/colores.dart';
-import '../wiauth/registro.dart'; // 📝 Importación directa para velocidad
+import '../wiauth/login.dart'; // 📝 Importación directa para velocidad
 
 class PantallaCargando extends StatefulWidget {
   const PantallaCargando({super.key});
@@ -37,7 +37,7 @@ class _PantallaCargandoState extends State<PantallaCargando>
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const PantallaRegistro()),
+        MaterialPageRoute(builder: (context) => const PantallaLogin()),
       );
     }
   }
