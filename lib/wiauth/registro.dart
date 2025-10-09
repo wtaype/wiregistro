@@ -6,6 +6,8 @@ import '../secciones/gastos.dart';
 import 'auth_fb.dart';
 import 'firestore_fb.dart';
 import 'usuario.dart';
+import 'login.dart';
+import 'terminos.dart';
 
 class PantallaRegistro extends StatefulWidget {
   const PantallaRegistro({super.key});
@@ -36,6 +38,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
   String _genero = 'masculino';
   bool _cargando = false, _registroCompletado = false;
   bool _verPassword = false, _verConfirm = false;
+  bool _aceptoTerminos = false;
 
   final _validacion = <String, bool>{
     'emailExiste': false,
@@ -183,7 +186,9 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                 () => setState(() => _verConfirm = !_verConfirm),
               ),
               AppConstantes.espacioGrandeWidget,
-
+              // 📝 AGREGAR: Checkbox Términos y Condiciones
+              _checkboxTerminos(),
+              AppConstantes.espacioGrandeWidget,
               // 🎯 Botón - COMPACTO
               SizedBox(
                 width: double.infinity,
@@ -203,6 +208,8 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _colorBoton(),
                     foregroundColor: _colorTextoBoton(),
+                    disabledBackgroundColor: AppColores.verdeSuave,
+                    disabledForegroundColor: AppColores.textoOscuro,
                     padding: EdgeInsets.symmetric(
                       vertical: AppConstantes.espacioMedio,
                     ),
@@ -215,6 +222,23 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                   ),
                 ),
               ),
+              AppConstantes.espacioMedioWidget,
+
+              // 🔗 ENLACE CORTITO Y CENTRADO
+              TextButton(
+                onPressed: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PantallaLogin()),
+                ),
+                child: Text(
+                  '¿Ya tienes cuenta? Inicia sesión',
+                  style: AppEstilos.textoNormal.copyWith(
+                    color: AppColores.enlace, // 🔥 Nuevo color
+                  ),
+                  textAlign: TextAlign.center, // 🔥 Centrado
+                ),
+              ),
+
               AppConstantes.espacioGrandeWidget,
             ],
           ),
@@ -222,6 +246,40 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
       ),
     );
   }
+
+  // 📝 AGREGAR: Checkbox términos - COMPACTO
+  Widget _checkboxTerminos() => Row(
+    children: [
+      Checkbox(
+        value: _aceptoTerminos,
+        onChanged: (v) => setState(() => _aceptoTerminos = v ?? false),
+        activeColor: AppColores.verdePrimario,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      Expanded(
+        child: GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PantallaTerminos()),
+          ),
+          child: Text.rich(
+            TextSpan(
+              text: 'Acepto ',
+              style: AppEstilos.textoNormal,
+              children: [
+                TextSpan(
+                  text: 'términos y condiciones',
+                  style: AppEstilos.textoNormal.copyWith(
+                    color: AppColores.enlace,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
 
   // 🎨 Logo - USANDO CONSTANTE
   Widget _construirLogo() => Container(
@@ -422,7 +480,8 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
       (_validacion['usuarioValidado'] ?? false) &&
       _controllers.values.every((c) => c.text.isNotEmpty) &&
       _controllers['password']!.text.length >= 6 &&
-      _controllers['confirmPassword']!.text == _controllers['password']!.text;
+      _controllers['confirmPassword']!.text == _controllers['password']!.text &&
+      _aceptoTerminos; // 🔥 AGREGAR ESTA LÍNEA
 
   // 🚀 Registrar usuario - COMPACTO
   void _registrarUsuario() async {

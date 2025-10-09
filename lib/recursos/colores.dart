@@ -14,13 +14,16 @@ class AppColores {
   static const Color textoVerde = Color(0xFF388E3C);
   static const Color blanco = Colors.white;
 
-  // 🚨 Estados y mensajes - NUEVOS
+  // 🔗 NUEVO: Color para enlaces
+  static const Color enlace = Color(0xFF4CAF50); // 🔥 Verde para enlaces
+
+  // 🚨 Estados y mensajes
   static const Color error = Color(0xFFE53935);
   static const Color exito = Color(0xFF4CAF50);
   static const Color advertencia = Color(0xFFFF9800);
   static const Color info = Color(0xFF2196F3);
 
-  // 🎨 UI adicionales - NUEVOS
+  // 🎨 UI adicionales
   static const Color gris = Color(0xFF9E9E9E);
   static const Color grisClaro = Color(0xFFF5F5F5);
   static const Color grisOscuro = Color(0xFF424242);

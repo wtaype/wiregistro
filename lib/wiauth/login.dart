@@ -32,10 +32,11 @@ class _PantallaLoginState extends State<PantallaLogin> {
   }
 
   void _configurarListeners() {
-    // 🧹 Sanitización automática para email/usuario
+    // 🧹 Sanitización MÁS FLEXIBLE para email/usuario en login
     _controllers['emailOUsuario']!.addListener(() {
       final texto = _controllers['emailOUsuario']!.text;
-      final sanitizado = AppFormatos.emailOUsuario(texto);
+      // 🔥 SOLO quitar espacios, permitir todo lo demás
+      final sanitizado = texto.replaceAll(RegExp(r'\s+'), '').toLowerCase();
       if (texto != sanitizado) {
         _controllers['emailOUsuario']!.value = TextEditingValue(
           text: sanitizado,
@@ -134,11 +135,12 @@ class _PantallaLoginState extends State<PantallaLogin> {
     validator: (v) => AppValidadores.emailOUsuario(v),
     style: AppEstilos.textoNormal,
     inputFormatters: [
-      FilteringTextInputFormatter.deny(RegExp(r'\s')), // Sin espacios
+      // 🔥 SOLO denegar espacios, permitir -, ., @, etc.
+      FilteringTextInputFormatter.deny(RegExp(r'\s')), // Solo sin espacios
     ],
     decoration: _decoracion(
       'Email o Usuario',
-      'tu@email.com o tu_usuario',
+      'Ingresa email o usuario',
       Icons.person,
     ),
   );
@@ -190,8 +192,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
         child: Text(
           '¿Olvidaste contraseña?',
           style: AppEstilos.textoNormal.copyWith(
-            color: AppColores.verdePrimario,
-            decoration: TextDecoration.underline,
+            color: AppColores.enlace, // 🔥 Usar color consistente
           ),
         ),
       ),

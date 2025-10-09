@@ -6,6 +6,7 @@ class Usuario {
   final bool activo;
   final Timestamp creacion, ultimaActividad;
   final String uid;
+  final Timestamp? aceptoTerminos; // 🔥 AGREGAR ESTA LÍNEA
 
   const Usuario({
     required this.email,
@@ -19,6 +20,7 @@ class Usuario {
     required this.creacion,
     required this.uid,
     required this.ultimaActividad,
+    this.aceptoTerminos, // 🔥 AGREGAR ESTA LÍNEA
   });
 
   // 🔄 Desde Firestore
@@ -36,6 +38,7 @@ class Usuario {
       creacion: data['creacion'] ?? Timestamp.now(),
       uid: data['uid'] ?? '',
       ultimaActividad: data['ultimaActividad'] ?? Timestamp.now(),
+      aceptoTerminos: data['aceptoTerminos'], // 🔥 AGREGAR ESTA LÍNEA
     );
   }
 
@@ -52,6 +55,7 @@ class Usuario {
     'creacion': creacion,
     'uid': uid,
     'ultimaActividad': ultimaActividad,
+    'aceptoTerminos': aceptoTerminos, // 🔥 AGREGAR ESTA LÍNEA
   };
 
   // 🎯 Constructor nuevo usuario
@@ -75,6 +79,7 @@ class Usuario {
       creacion: ahora,
       uid: uid,
       ultimaActividad: ahora,
+      aceptoTerminos: ahora, // 🔥  Acepta automáticamente al registrarse
     );
   }
 

@@ -154,7 +154,7 @@ class AppFirebase {
   };
 
   static String mensajeError(String codigo) =>
-      erroresAuth[codigo] ?? 'Error de autenticación';
+      erroresAuth[codigo] ?? 'Email o usuario no existe';
 
   // 🎯 Mensajes de éxito - AGREGAR ESTO
   static const Map<String, String> mensajesExito = {
